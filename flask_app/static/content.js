@@ -1,0 +1,1 @@
+console.log("C2C Mail Extension content script loaded");

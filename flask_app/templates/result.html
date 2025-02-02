@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="manifest" href="/static/manifest.json">
+    <link rel="apple-touch-icon" sizes="180x180" href="/static/apple-touch-icon.png">
+    <title>C2C Mail Extension</title>
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            padding-top: 50px;
+            background-color: #f8f9fa;
+        }
+        .container {
+            max-width: 600px;
+        }
+        .form-group textarea {
+            resize: none;
+        }
+        #result {
+            display: none; /* Hide the result box initially */
+            margin-top: 20px;
+        }
+        .alert-info {
+            background-color: #f8f9fa;
+            color: #6c757d;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 class="text-center" id="prediction-result">Prediction Result</h1>
+        <form id="predict-form">
+            <div class="form-group">
+                <label for="message">Mail Description:</label>
+                <textarea id="message" name="message" class="form-control" rows="4" cols="50"></textarea>
+            </div>
+            <button type="submit" class="btn btn-primary btn-block">Predict</button>
+        </form>
+        <div id="result" class="alert alert-info mt-4" role="alert"></div>
+    </div>
+    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <script>
+        document.getElementById('predict-form').addEventListener('submit', function(event) {
+            event.preventDefault(); // Prevent form submission
+            const resultElement = document.getElementById('result');
+            const message = document.getElementById('message').value;
+
+            $.ajax({
+                url: '/predict',
+                method: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify({ message: message }),
+                success: function(response) {
+                    resultElement.style.display = 'block'; // Show the result box
+
+                    if (response.result === 'Phishing Mail') {
+                        resultElement.classList.remove('alert-success', 'alert-info');
+                        resultElement.classList.add('alert-danger');
+                        resultElement.innerHTML = `
+                            <h4 class="alert-heading">Phishing Mail Detected!</h4>
+                            <p>This email is predicted to be a phishing mail.</p>
+                            <hr>
+                            <p class="mb-0">Phishing Mail Forecast: <strong>${response.phishing_forecast}%</strong></p>
+                            <p class="mb-0">Legitimate Mail Forecast: <strong>${response.legitimate_forecast}%</strong></p>
+                        `;
+                    } else if (response.result === 'Legitimate Mail') {
+                        resultElement.classList.remove('alert-danger', 'alert-info');
+                        resultElement.classList.add('alert-success');
+                        resultElement.innerHTML = `
+                            <h4 class="alert-heading">Legitimate Mail!</h4>
+                            <p>This email is predicted to be legitimate.</p>
+                            <hr>
+                            <p class="mb-0">Phishing Mail Forecast: <strong>${response.phishing_forecast}%</strong></p>
+                            <p class="mb-0">Legitimate Mail Forecast: <strong>${response.legitimate_forecast}%</strong></p>
+                        `;
+                    } else {
+                        resultElement.classList.remove('alert-danger', 'alert-success');
+                        resultElement.classList.add('alert-info');
+                        resultElement.innerHTML = `
+                            <h4 class="alert-heading">Unable to Determine</h4>
+                            <p>Unable to determine the nature of the mail.</p>
+                        `;
+                    }
+                },
+                error: function(error) {
+                    resultElement.style.display = 'block'; // Show the result box
+                    resultElement.classList.remove('alert-success', 'alert-info');
+                    resultElement.classList.add('alert-danger');
+                    resultElement.innerHTML = `
+                        <h4 class="alert-heading">Error</h4>
+                        <p>There was an error during prediction. Please try again.</p>
+                    `;
+                }
+            });
+        });
+    </script>
+</body>
+</html>

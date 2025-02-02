@@ -1,0 +1,23 @@
+{
+    "manifest_version": 3,
+    "name": "C2C Mail Classifier",
+    "description": "Phishing Mail Detector",
+    "version": "1.0",
+    "permissions": [
+        "activeTab",
+        "storage"
+    ],
+    "action": {
+        "default_popup": "templates/index.html",
+        "default_icon": "static/icon.png"
+    },
+    "background": {
+        "service_worker": "static/background.js"
+    },
+    "content_scripts": [
+        {
+            "matches": ["<all_urls>"],
+            "js": ["static/content.js"]
+        }
+    ]
+}
